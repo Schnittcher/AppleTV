@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 require_once __DIR__ . '/../libs/vendor/SymconModulHelper/VariableProfileHelper.php';
-require_once __DIR__ . '/../libs/helper.php';
 
     class AppleTV extends IPSModule
     {
-        use ATVHelper;
+        use VariableProfileHelper;
         public function Create()
         {
             //Never delete this line!
@@ -17,36 +16,44 @@ require_once __DIR__ . '/../libs/helper.php';
 
             $this->RegisterVariableString('Name', $this->Translate('Name'), '', 0);
             $this->RegisterVariableString('IP', $this->Translate('IP Address'), '', 1);
-            $this->RegisterVariableString('PlayBackState', $this->Translate('State'), '', 2);
+            $this->RegisterVariableString('DeviceState', $this->Translate('Device State'), '', 2);
+            $this->RegisterVariableString('PowerState', $this->Translate('Power State'), '', 3);
 
             if (!IPS_VariableProfileExists('ATV.Control')) {
-                $Associations = [];
-                $Associations[] = [1, $this->Translate('Up'), '', -1];
-                $Associations[] = [2, $this->Translate('Down'), '', -1];
-                $Associations[] = [3, $this->Translate('Left'), '', -1];
-                $Associations[] = [4, $this->Translate('Right'), '', -1];
-                $Associations[] = [5, $this->Translate('Menue'), '', -1];
-                $Associations[] = [6, $this->Translate('Play'), '', -1];
-                $Associations[] = [7, $this->Translate('Pause'), '', -1];
-                $Associations[] = [8, $this->Translate('Next'), '', -1];
-                $Associations[] = [9, $this->Translate('Previous'), '', -1];
-                $Associations[] = [10, $this->Translate('Suspend'), '', -1];
-                $Associations[] = [11, $this->Translate('Select'), '', -1];
-                $Associations[] = [12, $this->Translate('Long TV'), '', -1];
-                $Associations[] = [13, $this->Translate('TV'), '', -1];
-
-                $this->RegisterProfileIntegerEx('ATV.Controls', 'Databse', '', '', $Associations);
-                $this->RegisterVariableInteger('Controls', $this->Translate('Controls'), 'ATV.Controls', 3);
-                $this->EnableAction('Controls');
+                $this->RegisterProfileStringEx('ATV.Control', 'Menu', '', '', [
+                    ['down', $this->Translate('Down'), '', 0xFFFFFF],
+                    ['home', $this->Translate('Home'), '', 0x0000FF],
+                    ['homeHold', $this->Translate('Home Hold'), '', 0x0000FF],
+                    ['left', $this->Translate('Left'), '', 0x0000FF],
+                    ['menu', $this->Translate('Menu'), '', 0x0000FF],
+                    ['next', $this->Translate('Next'), '', 0x0000FF],
+                    ['pause', $this->Translate('Pause'), '', 0x0000FF],
+                    ['play', $this->Translate('Play'), '', 0x0000FF],
+                    ['playPause', $this->Translate('Play / Pause'), '', 0x0000FF],
+                    ['previous', $this->Translate('Previous'), '', 0x0000FF],
+                    ['right', $this->Translate('Right'), '', 0x0000FF],
+                    ['select', $this->Translate('Select'), '', 0x0000FF],
+                    ['skipBackward', $this->Translate('Skip Backward'), '', 0x0000FF],
+                    ['skipForward', $this->Translate('Skip Forward'), '', 0x0000FF],
+                    ['stop', $this->Translate('Stop'), '', 0x0000FF],
+                    ['suspend', $this->Translate('Supsend'), '', 0x0000FF],
+                    ['topMenu', $this->Translate('Top Menu'), '', 0x0000FF],
+                    ['up', $this->Translate('Up'), '', 0x0000FF],
+                    ['volumeDown', $this->Translate('Volume Down'), '', 0x0000FF],
+                    ['volumeUp', $this->Translate('Volume Up'), '', 0x0000FF],
+                    ['wakeup', $this->Translate('Wakeup'), '', 0x0000FF],
+                    //['turnOff', $this->Translate('Turn off'), '', 0x0000FF], //Funktioniert nicht
+                    ['turnOn', $this->Translate('Turn On'), '', 0x0000FF]
+                ]);
             }
-            $this->RegisterVariableInteger('Duration', $this->Translate('Duration'), '', 4);
-            $this->RegisterVariableInteger('ElapsedTime', $this->Translate('Elapsed Time'), '', 5);
+            $this->RegisterVariableString('Controls', $this->Translate('Controls'), 'ATV.Control', 4);
+            $this->EnableAction('Controls');
+            $this->RegisterVariableInteger('Duration', $this->Translate('Duration'), '', 5);
             $this->RegisterVariableString('Artist', $this->Translate('Artist'), '', 6);
             $this->RegisterVariableString('Title', $this->Translate('Title'), '', 7);
             $this->RegisterVariableString('Album', $this->Translate('Album'), '', 8);
-            $this->RegisterVariableString('AppDisplayName', $this->Translate('App'), '', 9);
+            $this->RegisterVariableString('AppDisplayName', $this->Translate('App'), '', 90);
             $this->RegisterVariableString('AppBundleIdentifier', $this->Translate('AppBundleIdentifier'), '', 10);
-            $this->RegisterVariableInteger('Timestamp', $this->Translate('Timestamp'), '', 11);
         }
 
         public function Destroy()
@@ -67,48 +74,11 @@ require_once __DIR__ . '/../libs/helper.php';
         {
             switch ($Ident) {
                 case 'Controls':
-                    switch ($Value) {
-                        case 1:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/up', '');
-                            break;
-                        case 2:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/down', '');
-                            break;
-                        case 3:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/left', '');
-                            break;
-                        case 4:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/right', '');
-                            break;
-                        case 5:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/menu', '');
-                            break;
-                        case 6:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/play', '');
-                            break;
-                        case 7:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/pause', '');
-                            break;
-                        case 8:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/next', '');
-                            break;
-                        case 9:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/previous', '');
-                            break;
-                        case 10:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/suspend', '');
-                            break;
-                        case 11:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/select', '');
-                            break;
-                        case 12:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/LongTv', '');
-                            break;
-                        case 13:
-                            $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/Tv', '');
-                            break;
-
-                    }
+                    $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/' . $Value, '');
+                    break;
+                default:
+                    $this->SendDebug('RequestAction :: No Ident', $Ident, 0);
+                    break;
             }
         }
 
@@ -128,7 +98,7 @@ require_once __DIR__ . '/../libs/helper.php';
                 $this->SendDebug('MQTT Payload', $Buffer->Payload, 0);
 
                 switch ($Buffer->Topic) {
-                    case $MQTTTopic . '/address':
+                    case $MQTTTopic . '/host':
                         $this->SetValue('IP', $Buffer->Payload);
                         break;
                     case $MQTTTopic . '/name':
@@ -143,23 +113,25 @@ require_once __DIR__ . '/../libs/helper.php';
                     case $MQTTTopic . '/album':
                         $this->SetValue('Album', $Buffer->Payload);
                         break;
-                    case $MQTTTopic . '/appDisplayName':
+                    case $MQTTTopic . '/app':
                         $this->SetValue('AppDisplayName', $Buffer->Payload);
                         break;
-                    case $MQTTTopic . '/appBundleIdentifier':
+                    case $MQTTTopic . '/appId':
                         $this->SetValue('AppBundleIdentifier', $Buffer->Payload);
                         break;
-                    case $MQTTTopic . '/playbackState':
-                        $this->SetValue('PlayBackState', $Buffer->Payload);
+                    case $MQTTTopic . '/deviceState':
+                        $this->SetValue('DeviceState', $Buffer->Payload);
                         break;
-                }
+                    case $MQTTTopic . '/powerState':
+                        $this->SetValue('PowerState', $Buffer->Payload);
+                        break;
+                    }
             }
         }
 
         private function sendMQTT($Topic, $Payload)
         {
             $resultServer = true;
-            //MQTT Server
             $Server['DataID'] = '{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}';
             $Server['PacketType'] = 3;
             $Server['QualityOfService'] = 0;
@@ -168,6 +140,7 @@ require_once __DIR__ . '/../libs/helper.php';
             $Server['Payload'] = $Payload;
             $ServerJSON = json_encode($Server, JSON_UNESCAPED_SLASHES);
             $this->SendDebug(__FUNCTION__ . 'MQTT Server', $ServerJSON, 0);
+            $resultServer = @$this->SendDataToParent($ServerJSON);
 
             if ($resultServer === false) {
                 $last_error = error_get_last();

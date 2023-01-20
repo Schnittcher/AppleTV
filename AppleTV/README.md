@@ -1,14 +1,18 @@
 # AppleTV
-Mit diesem Modul ist es möglich einen Apple TV mithilfen des NodeJS Tool (https://github.com/sebbo2002/atv2mqtt) über MQTT in IP-Symcon zu integrieren.
+Mit diesem Modul ist es möglich einen Apple TV mithilfe von pyatv-mqtt-bridge (https://github.com/sebbo2002/pyatv-mqtt-bridge) über MQTT in IP-Symcon zu integrieren.
 
 ### Inhaltsverzeichnis
 
-1. [Funktionsumfang](#1-funktionsumfang)
-2. [Voraussetzungen](#2-voraussetzungen)
-3. [Einrichten der Instanzen in IP-Symcon](#4-einrichten-der-instanzen-in-ip-symcon)
-4. [Statusvariablen und Profile](#5-statusvariablen-und-profile)
-5. [WebFront](#6-webfront)
-6. [PHP-Befehlsreferenz](#7-php-befehlsreferenz)
+- [AppleTV](#appletv)
+    - [Inhaltsverzeichnis](#inhaltsverzeichnis)
+    - [1. Funktionsumfang](#1-funktionsumfang)
+    - [2. Vorraussetzungen](#2-vorraussetzungen)
+    - [3. Einrichten der Instanzen in IP-Symcon](#3-einrichten-der-instanzen-in-ip-symcon)
+    - [4. Statusvariablen und Profile](#4-statusvariablen-und-profile)
+      - [Statusvariablen](#statusvariablen)
+      - [Profile](#profile)
+    - [5. WebFront](#5-webfront)
+    - [6. PHP-Befehlsreferenz](#6-php-befehlsreferenz)
 
 ### 1. Funktionsumfang
 
@@ -17,7 +21,7 @@ Mit diesem Modul ist es möglich einen Apple TV mithilfen des NodeJS Tool (https
 
 ### 2. Vorraussetzungen
 
-- IP-Symcon ab Version 5.1
+- IP-Symcon ab Version 6.0
 
 ### 3. Einrichten der Instanzen in IP-Symcon
 
@@ -39,22 +43,21 @@ Name   | Typ     | Beschreibung
 ------ | ------- | ------------
 Name|String| Name des Apple TVs
 IP-Adresse|String| IP-Adresse des Apple TVs
-Status|String| Aktueller Status Apple TVs
-Steuerung|Integer| Variable zum bedienen des Apple TVs
+Gerätestatus|String| Staus der Wiedergabe / Standby des Gerätes
+Power Status|String| Status, ob das Gerät ein- oder ausgeschaltet ist
+Steuerung |String| Variable zur Bedienung des AppleTVs
 Dauer|Integer| Dauer der aktuellen Wiedergabe
-Verstrichene Zeit|Integer| Verstrichene Zeit der aktuellen Wiedergabe
 Artist|String| Aktueller Künstler der Wiedergabe
 Titel|String| Aktueller Title der Wiedergabe
 Album|String| Aktuelles Album der Wiedergabe
 App|String| Aktuelle App
 AppBundleIdentifier|String| AppBundleIdentifier
-Timestamp|Integer|Aktueller Timestamp
 
 #### Profile
 
 Name   | Typ
 ------ | -------
-ATV.Controls|Integer
+ATV.Controls|String
 
 ### 5. WebFront
 
@@ -67,5 +70,5 @@ Schalten der Variable.
 
 Beispiel:
  Variable Steuerung = 12345
- AppleTV in Standby versetzen
-`RequestAction(12345, 10);`
+ AppleTV in Standby aufwecken
+`RequestAction(12345, 'wakeup');`

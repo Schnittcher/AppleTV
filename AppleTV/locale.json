@@ -14,18 +14,30 @@
             "Previous": "Zurück",
             "Suspend": "Standby",
             "Select": "Select",
-            "Long TV": "Long TV",
             "TV": "TV",
             "Controls": "Steuerung",
             "Duration": "Dauer",
             "Elapsed Time": "Verstrichene Zeit",
+            "Total Time": "Gesamtzeit",
             "Title": "Titel",
             "Artist": "Artist",
             "Album": "Album",
             "App": "App",
             "AppBundleIdentifier": "AppBundleIdentifier",
-            "State": "Status",
-            "Timestamp": "Timestamp"
+            "Device State": "Gerätestatus",
+            "Power State": "Power Status",
+            "Timestamp": "Timestamp",
+            "Supsend": "Standby",
+            "Home Hold": "Home halten",
+            "Home": "Home",
+            "Play / Pause": "Play / Pause",
+            "Skip Backward": "Rückwärts springen",
+            "Skip Forward": "Vorwärts springen",
+            "Top Menu": "Top Menu",
+            "Volume Up": "Lautstärke +",
+            "Volume Down": "Lautstärke -",
+            "Wakeup": "Aufwecken",
+            "Turn On": "Einschalten"
         }
     }
 }
