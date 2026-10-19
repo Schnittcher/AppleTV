@@ -1,94 +1,72 @@
 # AppleTV
-Mit diesem Modul ist es möglich einen Apple TV mithilfe von pyatv-mqtt-bridge (https://github.com/sebbo2002/pyatv-mqtt-bridge) über MQTT in IP-Symcon zu integrieren.
+Die Instanz bildet einen Apple TV in IP-Symcon ab. Sie empfängt Status und Wiedergabedaten der pyatv-mqtt-bridge per MQTT, legt dafür Statusvariablen an und sendet Steuerbefehle zurück an die Bridge. Zusätzlich zeigt sie in der Kachel-Visualisierung einen Player mit Fernbedienung.
 
-### Inhaltsverzeichnis
-
+## Inhaltsverzeichnis
 - [AppleTV](#appletv)
-    - [Inhaltsverzeichnis](#inhaltsverzeichnis)
-    - [1. Funktionsumfang](#1-funktionsumfang)
-    - [2. Vorraussetzungen](#2-vorraussetzungen)
-    - [3. Einrichten der Instanzen in IP-Symcon](#3-einrichten-der-instanzen-in-ip-symcon)
-    - [4. Statusvariablen und Profile](#4-statusvariablen-und-profile)
-      - [Statusvariablen](#statusvariablen)
-      - [Profile](#profile)
-    - [5. WebFront](#5-webfront)
-    - [6. PHP-Befehlsreferenz](#6-php-befehlsreferenz)
+  - [Inhaltsverzeichnis](#inhaltsverzeichnis)
+  - [1. Konfiguration](#1-konfiguration)
+  - [2. Variablen](#2-variablen)
+  - [3. Kachel-Visualisierung](#3-kachel-visualisierung)
+  - [4. Funktionen](#4-funktionen)
+  - [5. Spenden](#5-spenden)
+  - [6. Lizenz](#6-lizenz)
 
-### 1. Funktionsumfang
+## 1. Konfiguration
 
-* Status aktueller Wiedergabe
-* Steuerung des Apple TV
-* Kachel für die Kachel-Visualisierung (Player mit Fortschritt, Steuerung und Fernbedienung)
+Feld | Beschreibung
+------------ | ----------------
+MQTT Topic | Topic des Apple TV, wie es in der Konfiguration der pyatv-mqtt-bridge steht (zum Beispiel `home/wohnzimmer/appletv`). Ohne Topic steht die Instanz auf "Inaktiv" und empfängt keine Daten.
 
-### 2. Vorraussetzungen
+Als Gateway wird der interne MQTT-Server von IP-Symcon verwendet. Mit einem externen Broker muss der MQTT Client von Hand angelegt und in der Instanz unter "Gateway ändern" ausgewählt werden.
 
-- IP-Symcon ab Version 9.0
-- pyatv-mqtt-bridge (https://github.com/sebbo2002/pyatv-mqtt-bridge), die den Apple TV über MQTT bereitstellt
+## 2. Variablen
+Die Variablen werden automatisch angelegt. Das Löschen einzelner Variablen kann zu Fehlfunktionen führen.
 
-### 3. Einrichten der Instanzen in IP-Symcon
+Variable | Ident | Typ | Beschreibung
+------------ | ------------ | ------------ | ----------------
+Name | `Name` | Text | Name des Apple TV
+IP-Adresse | `IP` | Text | IP-Adresse des Apple TV
+Gerätestatus | `DeviceState` | Text | Status der Wiedergabe (zum Beispiel `playing`, `paused`, `idle`)
+Power Status | `PowerState` | Text | `on` oder `off`
+Steuerung | `Controls` | Text | Steuerbar. Sendet den gewählten Befehl an den Apple TV (Profil `ATV.Control`)
+Dauer | `Duration` | Ganzzahl (Sekunden) | Dauer der aktuellen Wiedergabe, Topic `totalTime` der Bridge
+Position | `Position` | Ganzzahl (Sekunden) | Aktuelle Position der Wiedergabe, Topic `position` der Bridge
+Artist | `Artist` | Text | Künstler der aktuellen Wiedergabe
+Titel | `Title` | Text | Titel der aktuellen Wiedergabe
+Album | `Album` | Text | Album der aktuellen Wiedergabe
+App | `AppDisplayName` | Text | Name der aktuellen App
+AppBundleIdentifier | `AppBundleIdentifier` | Text | Kennung der aktuellen App
 
- Unter 'Instanz hinzufügen' ist das 'AppleTV'-Modul unter dem Hersteller 'Apple' aufgeführt.
+Dauer und Position erscheinen nur, wenn die pyatv-mqtt-bridge sie liefert.
 
-__Konfigurationsseite__:
+Das Profil `ATV.Control` enthält die Befehle `down`, `home`, `homeHold`, `left`, `menu`, `next`, `pause`, `play`, `playPause`, `previous`, `right`, `select`, `skipBackward`, `skipForward`, `stop`, `suspend`, `topMenu`, `up`, `volumeDown`, `volumeUp`, `wakeup` und `turnOn`.
 
-Name     | Beschreibung
--------- | ------------------
-MQTT Topic | Topic des Apple TV in der pyatv-mqtt-bridge (Topic-Präfix aus der Konfiguration der Bridge)
-
-### 4. Statusvariablen und Profile
-
-Die Statusvariablen/Kategorien werden automatisch angelegt. Das Löschen einzelner kann zu Fehlfunktionen führen.
-
-#### Statusvariablen
-
-Name   | Typ     | Beschreibung
------- | ------- | ------------
-Name|String| Name des Apple TVs
-IP-Adresse|String| IP-Adresse des Apple TVs
-Gerätestatus|String| Staus der Wiedergabe / Standby des Gerätes
-Power Status|String| Status, ob das Gerät ein- oder ausgeschaltet ist
-Steuerung |String| Variable zur Bedienung des AppleTVs
-Dauer|Integer| Dauer der aktuellen Wiedergabe in Sekunden
-Position|Integer| Aktuelle Position der Wiedergabe in Sekunden
-Artist|String| Aktueller Künstler der Wiedergabe
-Titel|String| Aktueller Title der Wiedergabe
-Album|String| Aktuelles Album der Wiedergabe
-App|String| Aktuelle App
-AppBundleIdentifier|String| AppBundleIdentifier
-
-#### Profile
-
-Name   | Typ
------- | -------
-ATV.Control|String
-
-### 5. WebFront
-
-Anzeige und Steuerung des Apple TVs.
-
-__Kachel-Visualisierung__:
-
+## 3. Kachel-Visualisierung
 Die Instanz zeigt in der Kachel-Visualisierung einen Player:
 
 * Gerätename, App und Status (Wiedergabe, Pausiert, Standby)
 * Titel, Artist und Album der aktuellen Wiedergabe
-* Fortschrittsbalken mit Position und Dauer (läuft zwischen den Meldungen des Apple TV weiter)
+* Fortschrittsbalken mit Position und Dauer, der zwischen den Meldungen des Apple TV weiterläuft
 * Zurück, Rückwärts springen, Wiedergabe/Pause, Vorwärts springen, Weiter
 * Lautstärke, Aufwecken und Standby
 * Umschaltbare Fernbedienung mit Steuerkreuz, Auswahl, Zurück, Home und Home halten
 
 Die Bedienung läuft über die Variable "Steuerung". Die maximierte Ansicht der Kachel gibt es ab IP-Symcon 9.1, unter 9.0 bleibt sie leer.
 
-Hinweis: Position und Dauer erscheinen nur, wenn die pyatv-mqtt-bridge sie als `position` und `totalTime` liefert.
+## 4. Funktionen
 
-### 6. PHP-Befehlsreferenz
+`RequestAction(integer $VariablenID, string $Wert);`
+Sendet einen Befehl an den Apple TV. Die Variable ist die Variable "Steuerung" (`Controls`), der Wert einer der Befehle des Profils `ATV.Control`. Unbekannte Werte werden ignoriert.
 
-`RequestAction(integer $VariablenID, $Value);`
-Schalten der Variable.
+Beispiel, um den Apple TV aus dem Standby zu wecken:
 
-Beispiel:
- Variable Steuerung = 12345
- AppleTV in Standby aufwecken
 `RequestAction(12345, 'wakeup');`
 
-Hinweis: Wird das Topic leer gelassen, steht die Instanz auf "Inaktiv" und empfängt keine Daten.
+## 5. Spenden
+Dieses Modul ist für die nicht kommerzielle Nutzung kostenlos, Schenkungen als Unterstützung für den Autor werden hier akzeptiert:
+
+[![PayPal](https://img.shields.io/badge/PayPal-Spenden-00457C?logo=paypal&logoColor=white&style=for-the-badge)](https://www.paypal.com/donate?hosted_button_id=EK4JRP87XLSHW) [![Amazon Wunschzettel](https://img.shields.io/badge/Amazon-Wunschzettel-FF9900?logo=amazon&logoColor=white&style=for-the-badge)](https://www.amazon.de/hz/wishlist/ls/3JVWED9SZMDPK?ref_=wl_share)
+
+## 6. Lizenz
+
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
