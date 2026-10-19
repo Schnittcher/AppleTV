@@ -45,7 +45,7 @@ class AppleTV extends IPSModuleStrict
         if (!IPS_VariableProfileExists('ATV.Control')) {
             $associations = [];
             foreach ($this->getControls() as $ident => $caption) {
-                $associations[] = [$ident, $this->Translate($caption), '', $ident === 'down' ? 0xFFFFFF : 0x0000FF];
+                $associations[] = [$ident, $caption, '', $ident === 'down' ? 0xFFFFFF : 0x0000FF];
             }
             $this->RegisterProfileStringEx('ATV.Control', 'Menu', '', '', $associations);
         }
@@ -165,28 +165,28 @@ class AppleTV extends IPSModuleStrict
     private function getControls(): array
     {
         return [
-            'down'         => 'Down',
-            'home'         => 'Home',
-            'homeHold'     => 'Home Hold',
-            'left'         => 'Left',
-            'menu'         => 'Menu',
-            'next'         => 'Next',
-            'pause'        => 'Pause',
-            'play'         => 'Play',
-            'playPause'    => 'Play / Pause',
-            'previous'     => 'Previous',
-            'right'        => 'Right',
-            'select'       => 'Select',
-            'skipBackward' => 'Skip Backward',
-            'skipForward'  => 'Skip Forward',
-            'stop'         => 'Stop',
-            'suspend'      => 'Suspend',
-            'topMenu'      => 'Top Menu',
-            'up'           => 'Up',
-            'volumeDown'   => 'Volume Down',
-            'volumeUp'     => 'Volume Up',
-            'wakeup'       => 'Wakeup',
-            'turnOn'       => 'Turn On'
+            'down'         => $this->Translate('Down'),
+            'home'         => $this->Translate('Home'),
+            'homeHold'     => $this->Translate('Home Hold'),
+            'left'         => $this->Translate('Left'),
+            'menu'         => $this->Translate('Menu'),
+            'next'         => $this->Translate('Next'),
+            'pause'        => $this->Translate('Pause'),
+            'play'         => $this->Translate('Play'),
+            'playPause'    => $this->Translate('Play / Pause'),
+            'previous'     => $this->Translate('Previous'),
+            'right'        => $this->Translate('Right'),
+            'select'       => $this->Translate('Select'),
+            'skipBackward' => $this->Translate('Skip Backward'),
+            'skipForward'  => $this->Translate('Skip Forward'),
+            'stop'         => $this->Translate('Stop'),
+            'suspend'      => $this->Translate('Suspend'),
+            'topMenu'      => $this->Translate('Top Menu'),
+            'up'           => $this->Translate('Up'),
+            'volumeDown'   => $this->Translate('Volume Down'),
+            'volumeUp'     => $this->Translate('Volume Up'),
+            'wakeup'       => $this->Translate('Wakeup'),
+            'turnOn'       => $this->Translate('Turn On')
         ];
     }
 
