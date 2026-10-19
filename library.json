@@ -4,9 +4,9 @@
     "name": "AppleTV",
     "url": "https://deinsmarthome.info",
     "compatibility": {
-        "version": "6.0"
+        "version": "9.0"
     },
-    "version": "1.1",
+    "version": "2.0",
     "build": 0,
     "date": 0
 }

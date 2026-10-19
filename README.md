@@ -1,7 +1,8 @@
 [![Version](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-![Version](https://img.shields.io/badge/Symcon%20Version-6.0%20%3E-blue.svg)
+![Version](https://img.shields.io/badge/Symcon%20Version-9.0%20%3E-blue.svg)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-[![Check Style](https://github.com/Schnittcher/AppleTV/workflows/Check%20Style/badge.svg)](https://github.com/Schnittcher/AppleTV/actions)
+[![Check Style](https://github.com/Schnittcher/AppleTV/actions/workflows/style.yml/badge.svg)](https://github.com/Schnittcher/AppleTV/actions/workflows/style.yml)
+[![Tests](https://github.com/Schnittcher/AppleTV/actions/workflows/tests.yml/badge.svg)](https://github.com/Schnittcher/AppleTV/actions/workflows/tests.yml)
 
 # AppleTV
    Mit diesem Modul ist es möglich einen Apple TV mithilfe von pyatv-mqtt-bridge (https://github.com/sebbo2002/pyatv-mqtt-bridge) über MQTT in IP-Symcon zu integrieren.
@@ -19,7 +20,7 @@
    
 ## 1. Voraussetzungen
 
-* mindestens IPS Version 6.0
+* mindestens IPS Version 9.0
 * pyatv-mqtt-bridge (https://github.com/sebbo2002/pyatv-mqtt-bridge)
 * Bei dem AppleTV muss unter Einstellungen AirPlay und HomeKit der Zugriff "Für jeden im selben Netzwerk" ausgewählt werden.
 
@@ -29,7 +30,7 @@
 
 ## 3. Installation
 Installation über den IP-Symcon Module Store.
-Die Installation von ATV2MQTT ist hier beschrieben: https://github.com/sebbo2002/atv2mqtt/blob/master/README.md
+Die Installation der pyatv-mqtt-bridge ist hier beschrieben: https://github.com/sebbo2002/pyatv-mqtt-bridge/blob/main/README.md
 
 ## 4. Konfiguration in IP-Symcon
 Das Modul kann mit dem internen MQTT Server betrieben werden, oder aber mit einem externen MQTT Broker.

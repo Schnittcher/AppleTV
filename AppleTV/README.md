@@ -21,7 +21,8 @@ Mit diesem Modul ist es möglich einen Apple TV mithilfe von pyatv-mqtt-bridge (
 
 ### 2. Vorraussetzungen
 
-- IP-Symcon ab Version 6.0
+- IP-Symcon ab Version 9.0
+- pyatv-mqtt-bridge (https://github.com/sebbo2002/pyatv-mqtt-bridge), die den Apple TV über MQTT bereitstellt
 
 ### 3. Einrichten der Instanzen in IP-Symcon
 
@@ -31,7 +32,7 @@ __Konfigurationsseite__:
 
 Name     | Beschreibung
 -------- | ------------------
-MQTT Topic | Topic des ATV2MQTT Moduls, in der Konfigurations Datei von ATV2MQTT zu finden
+MQTT Topic | Topic des Apple TV in der pyatv-mqtt-bridge (Topic-Präfix aus der Konfiguration der Bridge)
 
 ### 4. Statusvariablen und Profile
 
@@ -57,7 +58,7 @@ AppBundleIdentifier|String| AppBundleIdentifier
 
 Name   | Typ
 ------ | -------
-ATV.Controls|String
+ATV.Control|String
 
 ### 5. WebFront
 
@@ -72,3 +73,5 @@ Beispiel:
  Variable Steuerung = 12345
  AppleTV in Standby aufwecken
 `RequestAction(12345, 'wakeup');`
+
+Hinweis: Wird das Topic leer gelassen, steht die Instanz auf "Inaktiv" und empfängt keine Daten.

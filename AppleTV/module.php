@@ -1,150 +1,186 @@
 <?php
 
 declare(strict_types=1);
+
 require_once __DIR__ . '/../libs/vendor/SymconModulHelper/VariableProfileHelper.php';
 
-    class AppleTV extends IPSModule
+class AppleTV extends IPSModuleStrict
+{
+    use VariableProfileHelper;
+
+    private const MQTT_DATA_ID = '{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}';
+    private const MQTT_PARENT_ID = '{C6D2AEB3-6E1F-4B2E-8E69-3A1A00246850}';
+
+    // Topic-Suffix der Bridge => Ident der Statusvariable
+    private const TOPIC_TO_IDENT = [
+        'host'        => 'IP',
+        'name'        => 'Name',
+        'title'       => 'Title',
+        'artist'      => 'Artist',
+        'album'       => 'Album',
+        'app'         => 'AppDisplayName',
+        'appId'       => 'AppBundleIdentifier',
+        'deviceState' => 'DeviceState',
+        'powerState'  => 'PowerState'
+    ];
+
+    public function Create(): void
     {
-        use VariableProfileHelper;
-        public function Create()
-        {
-            //Never delete this line!
-            parent::Create();
+        //Never delete this line!
+        parent::Create();
 
-            $this->ConnectParent('{C6D2AEB3-6E1F-4B2E-8E69-3A1A00246850}');
-            $this->RegisterPropertyString('MQTTTopic', '');
+        $this->ConnectParent(self::MQTT_PARENT_ID);
+        $this->RegisterPropertyString('MQTTTopic', '');
 
-            $this->RegisterVariableString('Name', $this->Translate('Name'), '', 0);
-            $this->RegisterVariableString('IP', $this->Translate('IP Address'), '', 1);
-            $this->RegisterVariableString('DeviceState', $this->Translate('Device State'), '', 2);
-            $this->RegisterVariableString('PowerState', $this->Translate('Power State'), '', 3);
+        $this->RegisterVariableString('Name', $this->Translate('Name'), '', 0);
+        $this->RegisterVariableString('IP', $this->Translate('IP Address'), '', 1);
+        $this->RegisterVariableString('DeviceState', $this->Translate('Device State'), '', 2);
+        $this->RegisterVariableString('PowerState', $this->Translate('Power State'), '', 3);
 
-            if (!IPS_VariableProfileExists('ATV.Control')) {
-                $this->RegisterProfileStringEx('ATV.Control', 'Menu', '', '', [
-                    ['down', $this->Translate('Down'), '', 0xFFFFFF],
-                    ['home', $this->Translate('Home'), '', 0x0000FF],
-                    ['homeHold', $this->Translate('Home Hold'), '', 0x0000FF],
-                    ['left', $this->Translate('Left'), '', 0x0000FF],
-                    ['menu', $this->Translate('Menu'), '', 0x0000FF],
-                    ['next', $this->Translate('Next'), '', 0x0000FF],
-                    ['pause', $this->Translate('Pause'), '', 0x0000FF],
-                    ['play', $this->Translate('Play'), '', 0x0000FF],
-                    ['playPause', $this->Translate('Play / Pause'), '', 0x0000FF],
-                    ['previous', $this->Translate('Previous'), '', 0x0000FF],
-                    ['right', $this->Translate('Right'), '', 0x0000FF],
-                    ['select', $this->Translate('Select'), '', 0x0000FF],
-                    ['skipBackward', $this->Translate('Skip Backward'), '', 0x0000FF],
-                    ['skipForward', $this->Translate('Skip Forward'), '', 0x0000FF],
-                    ['stop', $this->Translate('Stop'), '', 0x0000FF],
-                    ['suspend', $this->Translate('Supsend'), '', 0x0000FF],
-                    ['topMenu', $this->Translate('Top Menu'), '', 0x0000FF],
-                    ['up', $this->Translate('Up'), '', 0x0000FF],
-                    ['volumeDown', $this->Translate('Volume Down'), '', 0x0000FF],
-                    ['volumeUp', $this->Translate('Volume Up'), '', 0x0000FF],
-                    ['wakeup', $this->Translate('Wakeup'), '', 0x0000FF],
-                    //['turnOff', $this->Translate('Turn off'), '', 0x0000FF], //Funktioniert nicht
-                    ['turnOn', $this->Translate('Turn On'), '', 0x0000FF]
-                ]);
+        if (!IPS_VariableProfileExists('ATV.Control')) {
+            $associations = [];
+            foreach ($this->getControls() as $ident => $caption) {
+                $associations[] = [$ident, $this->Translate($caption), '', $ident === 'down' ? 0xFFFFFF : 0x0000FF];
             }
-            $this->RegisterVariableString('Controls', $this->Translate('Controls'), 'ATV.Control', 4);
-            $this->EnableAction('Controls');
-            $this->RegisterVariableInteger('Duration', $this->Translate('Duration'), '', 5);
-            $this->RegisterVariableString('Artist', $this->Translate('Artist'), '', 6);
-            $this->RegisterVariableString('Title', $this->Translate('Title'), '', 7);
-            $this->RegisterVariableString('Album', $this->Translate('Album'), '', 8);
-            $this->RegisterVariableString('AppDisplayName', $this->Translate('App'), '', 90);
-            $this->RegisterVariableString('AppBundleIdentifier', $this->Translate('AppBundleIdentifier'), '', 10);
+            $this->RegisterProfileStringEx('ATV.Control', 'Menu', '', '', $associations);
+        }
+        $this->RegisterVariableString('Controls', $this->Translate('Controls'), 'ATV.Control', 4);
+        $this->EnableAction('Controls');
+        $this->RegisterVariableInteger('Duration', $this->Translate('Duration'), '', 5);
+        $this->RegisterVariableString('Artist', $this->Translate('Artist'), '', 6);
+        $this->RegisterVariableString('Title', $this->Translate('Title'), '', 7);
+        $this->RegisterVariableString('Album', $this->Translate('Album'), '', 8);
+        $this->RegisterVariableString('AppDisplayName', $this->Translate('App'), '', 90);
+        $this->RegisterVariableString('AppBundleIdentifier', $this->Translate('AppBundleIdentifier'), '', 10);
+    }
+
+    public function Destroy(): void
+    {
+        //Never delete this line!
+        parent::Destroy();
+    }
+
+    public function ApplyChanges(): void
+    {
+        //Never delete this line!
+        parent::ApplyChanges();
+
+        $topic = trim($this->ReadPropertyString('MQTTTopic'));
+        if ($topic === '') {
+            $this->SetReceiveDataFilter('.*NOTHING.*');
+            $this->SetStatus(104);
+            return;
         }
 
-        public function Destroy()
-        {
-            //Never delete this line!
-            parent::Destroy();
-        }
+        $this->SetReceiveDataFilter('.*' . $topic . '.*');
+        $this->SetStatus(102);
+    }
 
-        public function ApplyChanges()
-        {
-            //Never delete this line!
-            parent::ApplyChanges();
-            $MQTTTopic = $this->ReadPropertyString('MQTTTopic');
-            $this->SetReceiveDataFilter('.*' . $MQTTTopic . '.*');
-        }
-
-        public function RequestAction($Ident, $Value)
-        {
-            switch ($Ident) {
-                case 'Controls':
-                    $this->sendMQTT($this->ReadPropertyString('MQTTTopic') . '/' . $Value, '');
-                    break;
-                default:
-                    $this->SendDebug('RequestAction :: No Ident', $Ident, 0);
-                    break;
-            }
-        }
-
-        public function ReceiveData($JSONString)
-        {
-            $MQTTTopic = $this->ReadPropertyString('MQTTTopic');
-            $this->SendDebug('JSON', $JSONString, 0);
-            if (!empty($this->ReadPropertyString('MQTTTopic'))) {
-                $Buffer = json_decode($JSONString);
-
-                //Für MQTT Fix in IPS Version 6.3
-                if (IPS_GetKernelDate() > 1670886000) {
-                    $Buffer->Payload = utf8_decode($Buffer->Payload);
+    public function RequestAction(string $Ident, mixed $Value): void
+    {
+        switch ($Ident) {
+            case 'Controls':
+                if (!array_key_exists((string) $Value, $this->getControls())) {
+                    $this->SendDebug(__FUNCTION__, 'Unknown control: ' . (string) $Value, 0);
+                    return;
                 }
-
-                $this->SendDebug('MQTT Topic', $Buffer->Topic, 0);
-                $this->SendDebug('MQTT Payload', $Buffer->Payload, 0);
-
-                switch ($Buffer->Topic) {
-                    case $MQTTTopic . '/host':
-                        $this->SetValue('IP', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/name':
-                        $this->SetValue('Name', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/title':
-                        $this->SetValue('Title', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/artist':
-                        $this->SetValue('Artist', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/album':
-                        $this->SetValue('Album', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/app':
-                        $this->SetValue('AppDisplayName', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/appId':
-                        $this->SetValue('AppBundleIdentifier', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/deviceState':
-                        $this->SetValue('DeviceState', $Buffer->Payload);
-                        break;
-                    case $MQTTTopic . '/powerState':
-                        $this->SetValue('PowerState', $Buffer->Payload);
-                        break;
-                    }
-            }
-        }
-
-        private function sendMQTT($Topic, $Payload)
-        {
-            $resultServer = true;
-            $Server['DataID'] = '{043EA491-0325-4ADD-8FC2-A30C8EEB4D3F}';
-            $Server['PacketType'] = 3;
-            $Server['QualityOfService'] = 0;
-            $Server['Retain'] = false;
-            $Server['Topic'] = $Topic;
-            $Server['Payload'] = $Payload;
-            $ServerJSON = json_encode($Server, JSON_UNESCAPED_SLASHES);
-            $this->SendDebug(__FUNCTION__ . 'MQTT Server', $ServerJSON, 0);
-            $resultServer = @$this->SendDataToParent($ServerJSON);
-
-            if ($resultServer === false) {
-                $last_error = error_get_last();
-                echo $last_error['message'];
-            }
+                $this->sendMQTT(trim($this->ReadPropertyString('MQTTTopic')) . '/' . $Value, '');
+                break;
+            default:
+                $this->SendDebug(__FUNCTION__ . ' :: No Ident', $Ident, 0);
+                break;
         }
     }
+
+    public function ReceiveData(string $JSONString): string
+    {
+        $this->SendDebug('JSON', $JSONString, 0);
+
+        $topic = trim($this->ReadPropertyString('MQTTTopic'));
+        if ($topic === '') {
+            return '';
+        }
+
+        $data = json_decode($JSONString, true);
+        if (!is_array($data) || !isset($data['Topic']) || !array_key_exists('Payload', $data)) {
+            $this->SendDebug(__FUNCTION__, 'Invalid MQTT data', 0);
+            return '';
+        }
+
+        // Der MQTT-Client reicht den Payload hex-kodiert durch
+        $payload = (string) $data['Payload'];
+        if ($payload !== '') {
+            $decoded = ctype_xdigit($payload) && strlen($payload) % 2 === 0 ? hex2bin($payload) : false;
+            if ($decoded === false) {
+                $this->SendDebug(__FUNCTION__, 'Payload is not hex encoded', 0);
+                return '';
+            }
+            $payload = $decoded;
+        }
+
+        $this->SendDebug('MQTT Topic', $data['Topic'], 0);
+        $this->SendDebug('MQTT Payload', $payload, 0);
+
+        $prefix = $topic . '/';
+        if (!str_starts_with($data['Topic'], $prefix)) {
+            return '';
+        }
+
+        $suffix = substr($data['Topic'], strlen($prefix));
+        if (isset(self::TOPIC_TO_IDENT[$suffix])) {
+            $this->SetValue(self::TOPIC_TO_IDENT[$suffix], $payload);
+        }
+        return '';
+    }
+
+    /**
+     * Steuerbefehle der Bridge: Ident (= MQTT-Topic-Suffix) => Bezeichnung.
+     */
+    private function getControls(): array
+    {
+        return [
+            'down'         => 'Down',
+            'home'         => 'Home',
+            'homeHold'     => 'Home Hold',
+            'left'         => 'Left',
+            'menu'         => 'Menu',
+            'next'         => 'Next',
+            'pause'        => 'Pause',
+            'play'         => 'Play',
+            'playPause'    => 'Play / Pause',
+            'previous'     => 'Previous',
+            'right'        => 'Right',
+            'select'       => 'Select',
+            'skipBackward' => 'Skip Backward',
+            'skipForward'  => 'Skip Forward',
+            'stop'         => 'Stop',
+            'suspend'      => 'Suspend',
+            'topMenu'      => 'Top Menu',
+            'up'           => 'Up',
+            'volumeDown'   => 'Volume Down',
+            'volumeUp'     => 'Volume Up',
+            'wakeup'       => 'Wakeup',
+            'turnOn'       => 'Turn On'
+        ];
+    }
+
+    private function sendMQTT(string $Topic, string $Payload): void
+    {
+        if (!$this->HasActiveParent()) {
+            $this->SendDebug(__FUNCTION__, 'No active parent', 0);
+            return;
+        }
+
+        $packet = [
+            'DataID'           => self::MQTT_DATA_ID,
+            'PacketType'       => 3,
+            'QualityOfService' => 0,
+            'Retain'           => false,
+            'Topic'            => $Topic,
+            'Payload'          => $Payload
+        ];
+        $json = json_encode($packet, JSON_UNESCAPED_SLASHES);
+        $this->SendDebug(__FUNCTION__ . ' MQTT Server', $json, 0);
+        $this->SendDataToParent($json);
+    }
+}
