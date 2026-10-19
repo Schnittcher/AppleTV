@@ -21,8 +21,13 @@ class AppleTV extends IPSModuleStrict
         'app'         => 'AppDisplayName',
         'appId'       => 'AppBundleIdentifier',
         'deviceState' => 'DeviceState',
-        'powerState'  => 'PowerState'
+        'powerState'  => 'PowerState',
+        'totalTime'   => 'Duration',
+        'position'    => 'Position'
     ];
+
+    // Idents, deren Payload eine Zeit in Sekunden ist
+    private const SECONDS_IDENTS = ['Duration', 'Position'];
 
     public function Create(): void
     {
@@ -47,11 +52,16 @@ class AppleTV extends IPSModuleStrict
         $this->RegisterVariableString('Controls', $this->Translate('Controls'), 'ATV.Control', 4);
         $this->EnableAction('Controls');
         $this->RegisterVariableInteger('Duration', $this->Translate('Duration'), '', 5);
+        $this->RegisterVariableInteger('Position', $this->Translate('Position'), '', 11);
         $this->RegisterVariableString('Artist', $this->Translate('Artist'), '', 6);
         $this->RegisterVariableString('Title', $this->Translate('Title'), '', 7);
         $this->RegisterVariableString('Album', $this->Translate('Album'), '', 8);
         $this->RegisterVariableString('AppDisplayName', $this->Translate('App'), '', 90);
         $this->RegisterVariableString('AppBundleIdentifier', $this->Translate('AppBundleIdentifier'), '', 10);
+
+        //Die Konstanten für den Kachel-Typ gibt es erst ab Symcon 9.1, auf 9.0 fehlt auch INSTANCE_VISUALIZATION_TYPE_HTML.
+        //Deshalb steht für HTML der Wert 1. Der Vollbildtyp braucht 9.1, davor bleibt die maximierte Ansicht leer.
+        $this->SetVisualizationType(defined('INSTANCE_VISUALIZATION_TYPE_HTML_FULLSCREEN') ? INSTANCE_VISUALIZATION_TYPE_HTML_FULLSCREEN : 1);
     }
 
     public function Destroy(): void
@@ -69,11 +79,13 @@ class AppleTV extends IPSModuleStrict
         if ($topic === '') {
             $this->SetReceiveDataFilter('.*NOTHING.*');
             $this->SetStatus(104);
+            $this->updateTile();
             return;
         }
 
         $this->SetReceiveDataFilter('.*' . $topic . '.*');
         $this->SetStatus(102);
+        $this->updateTile();
     }
 
     public function RequestAction(string $Ident, mixed $Value): void
@@ -128,9 +140,23 @@ class AppleTV extends IPSModuleStrict
 
         $suffix = substr($data['Topic'], strlen($prefix));
         if (isset(self::TOPIC_TO_IDENT[$suffix])) {
-            $this->SetValue(self::TOPIC_TO_IDENT[$suffix], $payload);
+            $ident = self::TOPIC_TO_IDENT[$suffix];
+            if (in_array($ident, self::SECONDS_IDENTS, true)) {
+                // Der Zeitpunkt dient der Kachel, um die Position zwischen zwei Meldungen weiterzuzählen
+                $this->SetBuffer('PositionAt', (string) time());
+                $this->SetValue($ident, is_numeric($payload) ? (int) round((float) $payload) : 0);
+            } else {
+                $this->SetValue($ident, $payload);
+            }
+            $this->updateTile();
         }
         return '';
+    }
+
+    public function GetVisualizationTile(): string
+    {
+        return (string) file_get_contents(__DIR__ . '/module.html')
+            . '<script>handleMessage(' . json_encode(json_encode($this->tileData())) . ');</script>';
     }
 
     /**
@@ -161,6 +187,45 @@ class AppleTV extends IPSModuleStrict
             'volumeUp'     => 'Volume Up',
             'wakeup'       => 'Wakeup',
             'turnOn'       => 'Turn On'
+        ];
+    }
+
+    private function updateTile(): void
+    {
+        $this->UpdateVisualizationValue((string) json_encode($this->tileData()));
+    }
+
+    private function tileData(): array
+    {
+        $value = function (string $ident): mixed
+        {
+            $id = @$this->GetIDForIdent($ident);
+            return $id === false ? null : GetValue($id);
+        };
+
+        return [
+            'name'        => (string) $value('Name'),
+            'app'         => (string) $value('AppDisplayName'),
+            'deviceState' => (string) $value('DeviceState'),
+            'powerState'  => (string) $value('PowerState'),
+            'title'       => (string) $value('Title'),
+            'artist'      => (string) $value('Artist'),
+            'album'       => (string) $value('Album'),
+            'duration'    => (int) $value('Duration'),
+            'position'    => (int) $value('Position'),
+            'positionAt'  => (int) $this->GetBuffer('PositionAt'),
+            'now'         => time(),
+            'active'      => $this->GetStatus() === 102,
+            'texts'       => [
+                'Nothing playing' => $this->Translate('Nothing playing'),
+                'Playing'         => $this->Translate('Playing'),
+                'Paused'          => $this->Translate('Paused'),
+                'Stopped'         => $this->Translate('Stopped'),
+                'Idle'            => $this->Translate('Idle'),
+                'Standby'         => $this->Translate('Standby'),
+                'Remote'          => $this->Translate('Remote'),
+                'Not configured'  => $this->Translate('Not configured')
+            ]
         ];
     }
 

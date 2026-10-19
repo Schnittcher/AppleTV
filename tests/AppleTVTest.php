@@ -125,6 +125,57 @@ class AppleTVTest extends TestCase
         $this->assertSame('Beyoncé Über', GetValue($this->variableID($instanceID, 'Artist')));
     }
 
+    public function testTimesAreStoredAsIntegerSeconds(): void
+    {
+        $instanceID = $this->createInstance(self::TOPIC);
+
+        $this->receive($instanceID, self::TOPIC . '/totalTime', '2711');
+        $this->receive($instanceID, self::TOPIC . '/position', '63.6');
+
+        $this->assertSame(2711, GetValue($this->variableID($instanceID, 'Duration')));
+        $this->assertSame(64, GetValue($this->variableID($instanceID, 'Position')));
+    }
+
+    public function testEmptyOrInvalidTimeBecomesZero(): void
+    {
+        $instanceID = $this->createInstance(self::TOPIC);
+        $this->receive($instanceID, self::TOPIC . '/position', '120');
+
+        $this->receive($instanceID, self::TOPIC . '/position', '');
+        $this->assertSame(0, GetValue($this->variableID($instanceID, 'Position')));
+
+        $this->receive($instanceID, self::TOPIC . '/totalTime', 'abc');
+        $this->assertSame(0, GetValue($this->variableID($instanceID, 'Duration')));
+    }
+
+    public function testTileContainsMarkupAndStartData(): void
+    {
+        $instanceID = $this->createInstance(self::TOPIC);
+        $this->receive($instanceID, self::TOPIC . '/title', 'Song "A"');
+        $this->receive($instanceID, self::TOPIC . '/deviceState', 'playing');
+
+        $html = IPS\InstanceManager::getInstanceInterface($instanceID)->GetVisualizationTile();
+
+        $this->assertStringContainsString('id="atv"', $html);
+        $this->assertStringContainsString("requestAction('Controls'", $html);
+        $this->assertSame(1, preg_match('/handleMessage\((".*")\);<\/script>\s*$/s', $html, $match));
+        $data = json_decode(json_decode($match[1]), true);
+        $this->assertSame('Song "A"', $data['title']);
+        $this->assertSame('playing', $data['deviceState']);
+        $this->assertTrue($data['active']);
+        $this->assertArrayHasKey('Nothing playing', $data['texts']);
+    }
+
+    public function testTileIsInactiveWithoutTopic(): void
+    {
+        $instanceID = $this->createInstance('');
+
+        $html = IPS\InstanceManager::getInstanceInterface($instanceID)->GetVisualizationTile();
+
+        $this->assertSame(1, preg_match('/handleMessage\((".*")\);<\/script>\s*$/s', $html, $match));
+        $this->assertFalse(json_decode(json_decode($match[1]), true)['active']);
+    }
+
     public function testEmptyPayloadClearsVariable(): void
     {
         $instanceID = $this->createInstance(self::TOPIC);

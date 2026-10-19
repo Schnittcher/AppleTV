@@ -18,6 +18,7 @@ Mit diesem Modul ist es möglich einen Apple TV mithilfe von pyatv-mqtt-bridge (
 
 * Status aktueller Wiedergabe
 * Steuerung des Apple TV
+* Kachel für die Kachel-Visualisierung (Player mit Fortschritt, Steuerung und Fernbedienung)
 
 ### 2. Vorraussetzungen
 
@@ -47,7 +48,8 @@ IP-Adresse|String| IP-Adresse des Apple TVs
 Gerätestatus|String| Staus der Wiedergabe / Standby des Gerätes
 Power Status|String| Status, ob das Gerät ein- oder ausgeschaltet ist
 Steuerung |String| Variable zur Bedienung des AppleTVs
-Dauer|Integer| Dauer der aktuellen Wiedergabe
+Dauer|Integer| Dauer der aktuellen Wiedergabe in Sekunden
+Position|Integer| Aktuelle Position der Wiedergabe in Sekunden
 Artist|String| Aktueller Künstler der Wiedergabe
 Titel|String| Aktueller Title der Wiedergabe
 Album|String| Aktuelles Album der Wiedergabe
@@ -63,6 +65,21 @@ ATV.Control|String
 ### 5. WebFront
 
 Anzeige und Steuerung des Apple TVs.
+
+__Kachel-Visualisierung__:
+
+Die Instanz zeigt in der Kachel-Visualisierung einen Player:
+
+* Gerätename, App und Status (Wiedergabe, Pausiert, Standby)
+* Titel, Artist und Album der aktuellen Wiedergabe
+* Fortschrittsbalken mit Position und Dauer (läuft zwischen den Meldungen des Apple TV weiter)
+* Zurück, Rückwärts springen, Wiedergabe/Pause, Vorwärts springen, Weiter
+* Lautstärke, Aufwecken und Standby
+* Umschaltbare Fernbedienung mit Steuerkreuz, Auswahl, Zurück, Home und Home halten
+
+Die Bedienung läuft über die Variable "Steuerung". Die maximierte Ansicht der Kachel gibt es ab IP-Symcon 9.1, unter 9.0 bleibt sie leer.
+
+Hinweis: Position und Dauer erscheinen nur, wenn die pyatv-mqtt-bridge sie als `position` und `totalTime` liefert.
 
 ### 6. PHP-Befehlsreferenz
 

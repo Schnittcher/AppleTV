@@ -36,7 +36,16 @@
             "Volume Up": "Lautstärke +",
             "Volume Down": "Lautstärke -",
             "Wakeup": "Aufwecken",
-            "Turn On": "Einschalten"
+            "Turn On": "Einschalten",
+            "Position": "Position",
+            "Nothing playing": "Keine Wiedergabe",
+            "Playing": "Wiedergabe",
+            "Paused": "Pausiert",
+            "Stopped": "Gestoppt",
+            "Idle": "Bereit",
+            "Standby": "Standby",
+            "Remote": "Fernbedienung",
+            "Not configured": "Nicht konfiguriert"
         }
     }
 }
