@@ -12,3 +12,17 @@
 - Ungültige Steuerbefehle und fehlerhafte MQTT-Nachrichten werden ignoriert, statt Fehler zu erzeugen.
 - Die Steuerung meldet keinen Fehler mehr, wenn der MQTT-Parent nicht aktiv ist.
 - Der Befehl "Suspend" heißt in der Auswahl wieder richtig (bei bestehenden Installationen erst nach Neuanlegen des Profils).
+
+## 30.05.2023 - Version 1.1
+
+### Neu
+- Auf pyatv-mqtt-bridge umgestellt
+
+### Fixes
+- Alten MQTT Client entfernt
+- UTF8 MQTT Fix
+
+## 30.06.2022 - Version 1.0
+
+### Neu
+- Erste Version.
