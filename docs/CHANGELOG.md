@@ -12,6 +12,7 @@
 - Ungültige Steuerbefehle und fehlerhafte MQTT-Nachrichten werden ignoriert, statt Fehler zu erzeugen.
 - Die Steuerung meldet keinen Fehler mehr, wenn der MQTT-Parent nicht aktiv ist.
 - Der Befehl "Suspend" heißt in der Auswahl wieder richtig (bei bestehenden Installationen erst nach Neuanlegen des Profils).
+- Der Dokumentationslink der Instanzen führt jetzt zur Dokumentation auf deinsmarthome.info.
 
 ## 30.05.2023 - Version 1.1
 
